@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "462040031000",
+    "project_id": "trackpit-701b7",
+    "storage_bucket": "trackpit-701b7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:462040031000:android:9e3d3e725c815bb78f086d",
+        "android_client_info": {
+          "package_name": "com.example.assignment"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "462040031000-b3532b0mhp7t54lvjrs58j2n3b6n1tjt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDAJ1noaG6bEE9WvoGjZcb7r1bwclduWEo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "462040031000-b3532b0mhp7t54lvjrs58j2n3b6n1tjt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
