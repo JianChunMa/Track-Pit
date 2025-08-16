@@ -53,14 +53,14 @@ class CustomAppBar extends StatelessWidget {
                   children: [
                     Text(
                       "Welcome back,",
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                     Text(
                       userName,
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 20,
+                        fontSize: 25,
                       ),
                     ),
                   ],

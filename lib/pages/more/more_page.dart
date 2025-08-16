@@ -196,7 +196,7 @@ class _ProfileCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.primaryAccent, // light green, if you defined it
+              color: AppColors.primaryGreen,
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.person, color: Colors.white),
