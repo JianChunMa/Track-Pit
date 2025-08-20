@@ -1,8 +1,11 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 import '../../core/constants/colors.dart';
 import '../../services/user_services.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import '/../models/user.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
@@ -34,11 +37,16 @@ class _SignUpPageState extends State<SignUpPage> {
 
   String _mapAuthError(FirebaseAuthException e) {
     switch (e.code) {
-      case 'email-already-in-use': return 'Email already in use.';
-      case 'invalid-email':        return 'Invalid email address.';
-      case 'weak-password':        return 'Password is too weak.';
-      case 'operation-not-allowed':return 'Email/password sign-up not enabled.';
-      default:                     return e.message ?? 'Could not sign up.';
+      case 'email-already-in-use':
+        return 'Email already in use.';
+      case 'invalid-email':
+        return 'Invalid email address.';
+      case 'weak-password':
+        return 'Password is too weak.';
+      case 'operation-not-allowed':
+        return 'Email/password sign-up not enabled.';
+      default:
+        return e.message ?? 'Could not sign up.';
     }
   }
 
@@ -52,36 +60,141 @@ class _SignUpPageState extends State<SignUpPage> {
 
     try {
       // 1) Create auth user
-      final cred = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(email: email, password: pwd);
+      final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: pwd,
+      );
 
       // 2) Update display name (optional)
       await cred.user?.updateDisplayName(name);
 
-      // 3) Create Firestore user doc
-      await _userService.createUserDoc(
+      // 3) Create Firestore user doc using model (server timestamps added in service)
+      final newUser = UserModel(
         uid: cred.user!.uid,
         fullName: name,
         email: email,
+        createdAt:
+            DateTime.now(), // not written directly (service uses server TS)
+        points: 0,
+        hasCompletedVehicleSetup: false,
+        vehicleCount: 0,
       );
+      await _userService.createUserDoc(newUser);
 
       if (!mounted) return;
 
-      // 4) Go to Home (or SignIn if you prefer)
+      // 4) Go to Home
       Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(_mapAuthError(e))));
-    } catch (_) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_mapAuthError(e))));
+    } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Something went wrong. Please try again.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Something went wrong: $e')));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
+
+  Future<void> _signUpWithGoogle() async {
+    setState(() => _loading = true);
+    try {
+      // Force account chooser every time (optional but useful while debugging)
+      final gs = GoogleSignIn();
+      await gs.signOut();
+
+      // 1) Account picker
+      final googleUser = await gs.signIn();
+      if (googleUser == null) {
+        debugPrint('[GGL] User cancelled account picker');
+        return;
+      }
+      debugPrint('[GGL] Picked: ${googleUser.email} / ${googleUser.displayName}');
+
+      // 2) Tokens
+      final googleAuth = await googleUser.authentication;
+      debugPrint('[GGL] idToken null? ${googleAuth.idToken == null}, accessToken null? ${googleAuth.accessToken == null}');
+
+      // If idToken is null on Android -> SHA-1 / SHA-256 or google-services.json problem
+      if (googleAuth.idToken == null) {
+        throw Exception('Google idToken is null. Check SHA-1/SHA-256 and google-services.json configuration.');
+      }
+
+      // 3) Firebase credential
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // 4) Firebase Auth
+      final result = await FirebaseAuth.instance.signInWithCredential(credential);
+      final user = result.user;
+      debugPrint('[GGL] Firebase user uid=${user?.uid}, isNew=${result.additionalUserInfo?.isNewUser}');
+
+      if (user == null) {
+        throw Exception('Google sign-in failed: Firebase returned null user.');
+      }
+
+      // 5) Create Firestore profile if it’s a first-time account; otherwise ensure the doc exists
+      final isNew = result.additionalUserInfo?.isNewUser ?? false;
+      if (isNew) {
+        final model = UserModel(
+          uid: user.uid,
+          fullName: user.displayName ?? 'User',
+          email: (user.email ?? '').toLowerCase(),
+          createdAt: DateTime.now(), // service will replace with serverTimestamp
+          points: 0,
+          hasCompletedVehicleSetup: false,
+          vehicleCount: 0,
+        );
+        await _userService.createUserDoc(model);
+        debugPrint('[GGL] Firestore profile created for ${user.uid}');
+      } else {
+        await _userService.ensureUserDoc(
+          uid: user.uid,
+          fullName: user.displayName ?? 'User',
+          email: (user.email ?? '').toLowerCase(),
+        );
+        debugPrint('[GGL] Firestore profile ensured for ${user.uid}');
+      }
+
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
+    } on FirebaseAuthException catch (e, st) {
+      debugPrint('[GGL][AuthException] code=${e.code} msg=${e.message}\n$st');
+      final msg = switch (e.code) {
+        'account-exists-with-different-credential' =>
+        'An account already exists with a different sign-in method.',
+        'invalid-credential' => 'Invalid credentials. Try again.',
+        'operation-not-allowed' => 'Google sign-in is disabled for this project.',
+        'user-disabled' => 'This account has been disabled.',
+        _ => e.message ?? 'Google sign-in failed.',
+      };
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      }
+    } on PlatformException catch (e, st) {
+      debugPrint('[GGL][PlatformException] code=${e.code} msg=${e.message} details=${e.details}\n$st');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Platform error: ${e.message ?? e.code}')),
+        );
+      }
+    } catch (e, st) {
+      debugPrint('[GGL][Unknown] $e\n$st');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +211,8 @@ class _SignUpPageState extends State<SignUpPage> {
               physics: const BouncingScrollPhysics(),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                    minHeight: media.size.height - media.padding.vertical),
+                  minHeight: media.size.height - media.padding.vertical,
+                ),
                 child: Column(
                   children: [
                     // =================== HEADER ===================
@@ -115,7 +229,8 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                           ),
                           Positioned(
-                            top: 24, left: -48,
+                            top: 24,
+                            left: -48,
                             child: _circle(130, AppColors.secondaryGreen),
                           ),
                           ClipRRect(
@@ -124,7 +239,8 @@ class _SignUpPageState extends State<SignUpPage> {
                               clipBehavior: Clip.hardEdge,
                               children: [
                                 Positioned(
-                                  top: -35, right: -36,
+                                  top: -35,
+                                  right: -36,
                                   child: _circle(120, AppColors.secondaryGreen),
                                 ),
                               ],
@@ -136,7 +252,8 @@ class _SignUpPageState extends State<SignUpPage> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Container(
-                                  width: 90, height: 90,
+                                  width: 90,
+                                  height: 90,
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(20),
@@ -173,7 +290,9 @@ class _SignUpPageState extends State<SignUpPage> {
                     // =================== FORM ===================
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 18),
+                        horizontal: 20,
+                        vertical: 18,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
@@ -198,7 +317,8 @@ class _SignUpPageState extends State<SignUpPage> {
                                   controller: _nameCtrl,
                                   hint: 'Full Name',
                                   keyboardType: TextInputType.name,
-                                  validator: (v) => (v == null || v.trim().isEmpty)
+                                  validator: (v) =>
+                                      (v == null || v.trim().isEmpty)
                                       ? 'Enter your full name'
                                       : null,
                                 ),
@@ -223,9 +343,11 @@ class _SignUpPageState extends State<SignUpPage> {
                                   hint: 'Password',
                                   obscureText: !_showPwd,
                                   suffix: IconButton(
-                                    icon: Icon(_showPwd
-                                        ? Icons.visibility
-                                        : Icons.visibility_off),
+                                    icon: Icon(
+                                      _showPwd
+                                          ? Icons.visibility
+                                          : Icons.visibility_off,
+                                    ),
                                     onPressed: () =>
                                         setState(() => _showPwd = !_showPwd),
                                   ),
@@ -242,11 +364,14 @@ class _SignUpPageState extends State<SignUpPage> {
                                   hint: 'Confirm Password',
                                   obscureText: !_showConfirm,
                                   suffix: IconButton(
-                                    icon: Icon(_showConfirm
-                                        ? Icons.visibility
-                                        : Icons.visibility_off),
+                                    icon: Icon(
+                                      _showConfirm
+                                          ? Icons.visibility
+                                          : Icons.visibility_off,
+                                    ),
                                     onPressed: () => setState(
-                                            () => _showConfirm = !_showConfirm),
+                                      () => _showConfirm = !_showConfirm,
+                                    ),
                                   ),
                                   validator: (v) => (v != _pwdCtrl.text)
                                       ? 'Passwords do not match'
@@ -256,7 +381,8 @@ class _SignUpPageState extends State<SignUpPage> {
 
                                 // primary button
                                 SizedBox(
-                                  width: double.infinity, height: 48,
+                                  width: double.infinity,
+                                  height: 48,
                                   child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors.primaryGreen,
@@ -266,7 +392,8 @@ class _SignUpPageState extends State<SignUpPage> {
                                       elevation: 0,
                                       foregroundColor: Colors.white,
                                       textStyle: const TextStyle(
-                                          fontWeight: FontWeight.w600),
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                     onPressed: _submit,
                                     child: const Text('Sign Up'),
@@ -281,11 +408,13 @@ class _SignUpPageState extends State<SignUpPage> {
                             children: [
                               const Expanded(child: Divider(thickness: 1)),
                               Padding(
-                                padding:
-                                const EdgeInsets.symmetric(horizontal: 10),
-                                child: Text('OR',
-                                    style: TextStyle(
-                                        color: Colors.grey.shade600)),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                ),
+                                child: Text(
+                                  'OR',
+                                  style: TextStyle(color: Colors.grey.shade600),
+                                ),
                               ),
                               const Expanded(child: Divider(thickness: 1)),
                             ],
@@ -294,27 +423,36 @@ class _SignUpPageState extends State<SignUpPage> {
 
                           // Google button (not implemented)
                           SizedBox(
-                            width: double.infinity, height: 48,
+                            width: double.infinity,
+                            height: 48,
                             child: OutlinedButton(
                               style: OutlinedButton.styleFrom(
                                 side: BorderSide(
-                                    color: Colors.black.withOpacity(.15),
-                                    width: 1.2),
+                                  color: Colors.black.withOpacity(.15),
+                                  width: 1.2,
+                                ),
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(28)),
+                                  borderRadius: BorderRadius.circular(28),
+                                ),
                                 foregroundColor: Colors.black87,
                                 backgroundColor: Colors.white,
                               ),
-                              onPressed: () {},
+                              onPressed: _signUpWithGoogle,
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Image.asset('lib/assets/images/google_logo.png',
-                                      width: 20, height: 20),
+                                  Image.asset(
+                                    'lib/assets/images/google_logo.png',
+                                    width: 20,
+                                    height: 20,
+                                  ),
                                   const SizedBox(width: 10),
-                                  const Text('Sign Up with Google',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.w600)),
+                                  const Text(
+                                    'Sign Up with Google',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -399,8 +537,10 @@ class _RoundedField extends StatelessWidget {
         hintText: hint,
         filled: true,
         fillColor: const Color(0xFFF1F3F5),
-        contentPadding:
-        const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(28),
           borderSide: BorderSide.none,
@@ -416,9 +556,17 @@ class _BottomWaveClipper extends CustomClipper<Path> {
   Path getClip(Size size) {
     final p = Path()..lineTo(0, size.height - 40);
     p.quadraticBezierTo(
-        size.width * .25, size.height, size.width * .5, size.height - 24);
+      size.width * .25,
+      size.height,
+      size.width * .5,
+      size.height - 24,
+    );
     p.quadraticBezierTo(
-        size.width * .75, size.height - 48, size.width, size.height - 10);
+      size.width * .75,
+      size.height - 48,
+      size.width,
+      size.height - 10,
+    );
     p.lineTo(size.width, 0);
     p.close();
     return p;

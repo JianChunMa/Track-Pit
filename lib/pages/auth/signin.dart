@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../../core/constants/colors.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import '../../services/user_services.dart';
+import '/../models/user.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({Key? key}) : super(key: key);
@@ -15,6 +18,8 @@ class _SignInPageState extends State<SignInPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
   final _pwdCtrl = TextEditingController();
+
+  final _userService = UserService();
 
   bool _showPwd = false;
   bool _rememberMe = false;
@@ -82,6 +87,73 @@ class _SignInPageState extends State<SignInPage> {
       if (mounted) setState(() => _loading = false);
     }
   }
+
+  // google sign in
+  // Google sign in (uses UserModel + ensureUserDoc)
+  Future<void> _signInWithGoogle() async {
+    setState(() => _loading = true);
+    try {
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return; // user cancelled
+
+      final googleAuth = await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final result =
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      final user = result.user;
+      if (user == null) throw Exception('Google sign-in failed (no user)');
+
+      final isNew = result.additionalUserInfo?.isNewUser ?? false;
+
+      if (isNew) {
+        // create profile using your UserModel
+        final model = UserModel(
+          uid: user.uid,
+          fullName: user.displayName ?? 'User',
+          email: (user.email ?? '').toLowerCase(),
+          createdAt: DateTime.now(), // service writes server timestamps
+          points: 0,
+          hasCompletedVehicleSetup: false,
+          vehicleCount: 0,
+        );
+        await _userService.createUserDoc(model);
+      } else {
+        // make sure a doc exists for returning Google users
+        await _userService.ensureUserDoc(
+          uid: user.uid,
+          fullName: user.displayName ?? 'User',
+          email: (user.email ?? '').toLowerCase(),
+        );
+      }
+
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      final msg = switch (e.code) {
+        'account-exists-with-different-credential' =>
+        'An account already exists with a different sign-in method.',
+        'invalid-credential' => 'Invalid credentials. Try again.',
+        'operation-not-allowed' => 'Google sign-in is disabled for this project.',
+        'user-disabled' => 'This account has been disabled.',
+        _ => e.message ?? 'Google sign-in failed.',
+      };
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error: $e')));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+
 
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
@@ -253,7 +325,7 @@ class _SignInPageState extends State<SignInPage> {
                                               () => _rememberMe = v ?? false,
                                             ),
                                             activeColor:
-                                                AppColors.primaryAccent,
+                                                AppColors.primaryGreen,
                                             materialTapTargetSize:
                                                 MaterialTapTargetSize
                                                     .shrinkWrap,
@@ -352,7 +424,7 @@ class _SignInPageState extends State<SignInPage> {
                           ),
                           const SizedBox(height: 14),
 
-                          // Google button (disabled for now)
+                          // Google sign in button
                           SizedBox(
                             width: double.infinity,
                             height: 48,
@@ -368,7 +440,7 @@ class _SignInPageState extends State<SignInPage> {
                                 foregroundColor: Colors.black87,
                                 backgroundColor: Colors.white,
                               ),
-                              onPressed: () {},
+                              onPressed: _signInWithGoogle,
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
