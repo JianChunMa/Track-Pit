@@ -101,14 +101,14 @@ class UserService {
     final plateRef = _db.collection('plates').doc(plate);
 
     await _db.runTransaction((tx) async {
-      tx.delete(vehRef);
-      tx.delete(plateRef);
-
-      // recompute hasCompletedVehicleSetup based on new count
+      // READS FIRST (required by Firestore transactions)
       final userSnap = await tx.get(userRef);
       final current = (userSnap.data()?['vehicleCount'] ?? 1) as int;
       final newCount = (current - 1).clamp(0, 1 << 31);
 
+      // WRITES AFTER ALL READS
+      tx.delete(vehRef);
+      tx.delete(plateRef);
       tx.update(userRef, {
         'vehicleCount': FieldValue.increment(-1),
         'hasCompletedVehicleSetup': newCount > 0,
@@ -116,6 +116,7 @@ class UserService {
       });
     });
   }
+
 
   /// Stream vehicles (raw maps) for UI lists., raw-map version
   Stream<List<Map<String, dynamic>>> vehiclesStream(String uid) {

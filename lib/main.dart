@@ -36,7 +36,7 @@ class CarServiceApp extends StatelessWidget {
         '/more' : (_) => const MorePage(),
 
         '/addvehicle' :(_) => const AddVehiclePage(),
-        '/my_vehicles':(_) => const MyVehiclesPage(),
+        '/my_vehicles':(_) =>  MyVehiclesPage(),
       },
       // Auth gate: if already signed in, go straight to Home
       home: StreamBuilder<User?>(

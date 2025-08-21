@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:assignment/core/constants/colors.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -13,17 +13,33 @@ class CustomBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: currentIndex,
-      selectedItemColor: Color(0xFF29A87A),
-      unselectedItemColor: Colors.grey,
-      onTap: onTap,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-        BottomNavigationBarItem(icon: Icon(Icons.build), label: "Services"),
-        BottomNavigationBarItem(icon: Icon(Icons.receipt), label: "Billing"),
-        BottomNavigationBarItem(icon: Icon(Icons.menu), label: "More"),
-      ],
+    return Container(
+
+      decoration: const BoxDecoration(
+        color: AppColors.white,
+        border: Border(
+          top: BorderSide(
+            color: AppColors.primaryAccent,  // border color
+            width: 1.0,          // border thickness
+          ),
+        ),
+      ),
+
+      child: BottomNavigationBar(
+        backgroundColor: AppColors.white,
+        currentIndex: currentIndex,
+        selectedItemColor: AppColors.primaryGreen,
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed, // ensure all labels show
+        onTap: onTap,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.build), label: "Services"),
+          BottomNavigationBarItem(icon: Icon(Icons.receipt), label: "Billing"),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: "More"),
+        ],
+      ),
     );
   }
+
 }

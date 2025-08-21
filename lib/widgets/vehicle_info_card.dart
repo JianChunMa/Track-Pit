@@ -68,6 +68,7 @@ class VehicleInfoCard extends StatelessWidget {
               color: AppColors.primaryGreen,
               borderRadius: BorderRadius.circular(8),
             ),
+            // swap vehicle
             child: Icon(Icons.compare_arrows, color: Colors.white, size: 20),
           )
         ],

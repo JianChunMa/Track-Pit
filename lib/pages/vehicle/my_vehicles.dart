@@ -1,24 +1,30 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../../core/constants/colors.dart';
-import '../../services/user_services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../widgets/vehicle_list_card.dart';
-import '../../models/vehicle.dart';
+import '../../widgets/confirm_dialog.dart';
+import '../../services/user_services.dart';
+
+import '../../core/constants/colors.dart';
 
 class MyVehiclesPage extends StatelessWidget {
-  const MyVehiclesPage({Key? key}) : super(key: key);
+  MyVehiclesPage({Key? key}) : super(key: key);
+
+  final _userService = UserService();
 
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-
     if (uid == null) {
-      // Not signed in — bounce back or show message
-      Future.microtask(() => Navigator.pop(context));
-      return const SizedBox.shrink();
+      // Not signed in – redirect or show empty state
+      return const Scaffold(body: Center(child: Text('Please sign in.')));
     }
 
-    final service = UserService();
+    final vehiclesCol = FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('vehicles')
+        .orderBy('createdAt', descending: true);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -27,82 +33,65 @@ class MyVehiclesPage extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         foregroundColor: Colors.black87,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16, top: 6),
-            child: SizedBox(
-              width: 44,
-              height: 44,
-              child: FloatingActionButton(
-                heroTag: 'addVehicleFab',
-                backgroundColor: AppColors.primaryGreen,
-                elevation: 0,
-                shape: const CircleBorder(),
-                onPressed: () => Navigator.pushNamed(context, '/addVehicle'),
-                child: const Icon(Icons.add, color: Colors.white, size: 28),
-              ),
-            ),
-          ),
-        ],
       ),
-      body: StreamBuilder<List<Vehicle>>(
-        stream: service.vehiclesTypedStream(uid),
+      floatingActionButton:SizedBox(
+        width: 72,   // default is ~56
+        height: 72,  // make it larger
+        child: FloatingActionButton(
+          heroTag: 'addVehicleFab',
+          backgroundColor: AppColors.primaryGreen,
+          elevation: 5,
+          shape: const CircleBorder(),
+          onPressed: () => Navigator.pushNamed(context, '/addvehicle'),
+          child: const Icon(Icons.add, color: Colors.white, size: 32), // bigger icon too
+      ),
+    ),
+
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,   // default bottom-right
+
+
+      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: vehiclesCol.snapshots(),
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snap.hasError) {
-            return Center(child: Text('Error: ${snap.error}'));
+          if (!snap.hasData || snap.data!.docs.isEmpty) {
+            return const Center(child: Text('No vehicles yet.'));
           }
 
-          final vehicles = snap.data ?? const <Vehicle>[];
-          if (vehicles.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('No vehicles yet'),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pushNamed(context, '/addVehicle'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryGreen,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: const Text('Add Vehicle'),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
+          final docs = snap.data!.docs;
 
-          return ListView.separated(
+          return ListView.builder(
             padding: const EdgeInsets.only(top: 6, bottom: 24),
-            itemCount: vehicles.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 6),
+            itemCount: docs.length,
             itemBuilder: (context, i) {
-              final v = vehicles[i];
-
-              // If you store an imagePath in Firestore, use it directly.
-              // Otherwise map model -> asset here as a fallback:
-              final imagePath = _imageForModel(v.model);
+              final d = docs[i];
+              final v = d.data();
+              final vehicleId = d.id;
+              final plateNumber = (v['plateNumber'] ?? '') as String;
+              final model = (v['model'] ?? '') as String;
+              final chassis = (v['chassisNumber'] ?? '') as String;
+              final imagePath =
+                  'lib/assets/images/x50.png'; // or from v['imagePath']
 
               return VehicleListCard(
-                plateNumber: v.plateNumber,
-                model: v.model,
-                chassisNumber: v.chassisNumber,
+                plateNumber: plateNumber,
+                model: model,
+                chassisNumber: chassis,
                 imagePath: imagePath,
                 onTap: () {
-                  // TODO: push details page with vehicle id v.id
-                  // Navigator.pushNamed(context, '/vehicleDetails', arguments: v.id);
+                  // open details if you have one
                 },
+                onEdit: () {
+                  // navigate to edit page if you have one
+                },
+                onDelete: () => _confirmAndDelete(
+                  context: context,
+                  uid: uid,
+                  vehicleId: vehicleId,
+                  plateNumber: plateNumber,
+                ),
               );
             },
           );
@@ -111,13 +100,43 @@ class MyVehiclesPage extends StatelessWidget {
     );
   }
 
-  /// Simple local mapping for image
-  String _imageForModel(String model) {
-    final m = model.toLowerCase();
-    if (m.contains('x50')) return 'lib/assets/images/x50.png';
-    if (m.contains('sedan') || m.contains('accord')) {
-      return 'lib/assets/images/sedan_silver.png';
+  Future<void> _confirmAndDelete({
+    required BuildContext context,
+    required String uid,
+    required String vehicleId,
+    required String plateNumber,
+  }) async {
+    // Use a local context tied to ScaffoldMessenger
+    final scaffoldCtx = context;
+
+    final ok = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const ConfirmDialog(
+        title: "Delete vehicle?",
+        message: "This will remove the vehicle from your garage.",
+        confirmText: "Delete",
+        cancelText: "Cancel",
+      ),
+    );
+
+    if (ok != true) return;
+
+    try {
+      await _userService.removeVehicle(
+        uid: uid,
+        vehicleId: vehicleId,
+        plateNumber: plateNumber,
+      );
+
+      // In newer Flutter versions you can also check: if (!scaffoldCtx.mounted) return;
+      ScaffoldMessenger.of(
+        scaffoldCtx,
+      ).showSnackBar(SnackBar(content: Text('Deleted $plateNumber')));
+    } catch (e) {
+      ScaffoldMessenger.of(
+        scaffoldCtx,
+      ).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
     }
-    return 'lib/assets/images/car_icon.png'; // fallback
   }
 }
