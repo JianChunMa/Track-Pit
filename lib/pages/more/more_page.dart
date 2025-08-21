@@ -87,7 +87,7 @@ class MorePage extends StatelessWidget {
                 _MenuTile(
                   title: 'My Vehicles',
                   onTap: () {
-                    /* Navigator.pushNamed(context, '/vehicles'); */
+                    Navigator.pushNamed(context, '/my_vehicles');
                   },
                 ),
                 _divider(),

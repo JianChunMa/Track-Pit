@@ -9,6 +9,8 @@ import 'firebase_options.dart';
 import 'package:assignment/pages/auth/signin.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:assignment/pages/more/more_page.dart';
+import 'package:assignment/pages/vehicle/add_vehicle.dart';
+import 'package:assignment/pages/vehicle/my_vehicles.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,8 +31,12 @@ class CarServiceApp extends StatelessWidget {
       routes: {
         '/signin': (_) => const SignInPage(),
         '/signup': (_) => const SignUpPage(),
+
         '/home'  : (_) =>  HomePage(),
         '/more' : (_) => const MorePage(),
+
+        '/addvehicle' :(_) => const AddVehiclePage(),
+        '/my_vehicles':(_) => const MyVehiclesPage(),
       },
       // Auth gate: if already signed in, go straight to Home
       home: StreamBuilder<User?>(

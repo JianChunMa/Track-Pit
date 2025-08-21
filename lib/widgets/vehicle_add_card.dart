@@ -47,6 +47,7 @@ class VehicleAddCard extends StatelessWidget {
               ),
               child: Center(
                 child: Icon(Icons.add, color: Colors.white, size: 20),
+
               ),
             )
           ],

@@ -6,7 +6,7 @@ class AppColors {
   static const Color secondaryGreen=Color(0xFF36B587);
   static const Color jadeGreen = Color(0xFF08B783);
 
-
+  static const Color white = Color(0xFFFFFFFF);
 
   //  gradient (GPS)
   static const Color neonGreen= Color(0xFF00F470);

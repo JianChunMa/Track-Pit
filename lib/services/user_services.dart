@@ -117,7 +117,7 @@ class UserService {
     });
   }
 
-  /// Stream vehicles (raw maps) for UI lists.
+  /// Stream vehicles (raw maps) for UI lists., raw-map version
   Stream<List<Map<String, dynamic>>> vehiclesStream(String uid) {
     return _db
         .collection('users')
@@ -126,6 +126,18 @@ class UserService {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((s) => s.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+  }
+
+  Stream<List<Vehicle>> vehiclesTypedStream(String uid) {
+    return _db
+        .collection('users')
+        .doc(uid)
+        .collection('vehicles')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snap) => snap.docs
+        .map((d) => Vehicle.fromMap(d.id, d.data()))
+        .toList());
   }
 
   /// Increment/decrement user points (positive to add, negative to redeem).

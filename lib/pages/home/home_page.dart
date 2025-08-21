@@ -55,8 +55,9 @@ class HomePage extends StatelessWidget {
                       model: "Proton X50 1.5T",
                       plateNumber: "ABC 1234",
                       imagePath: 'lib/assets/images/x50.png',
+
                     )
-                        : const VehicleAddCard(),
+                        :  VehicleAddCard(onTap: () => Navigator.pushNamed(context, '/addvehicle'),),
                   ),
                 ],
               ),
