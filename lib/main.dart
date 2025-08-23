@@ -11,6 +11,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:assignment/pages/more/more_page.dart';
 import 'package:assignment/pages/vehicle/add_vehicle.dart';
 import 'package:assignment/pages/vehicle/my_vehicles.dart';
+import 'package:assignment/pages/vehicle/swap_vehicle.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,17 +29,27 @@ class CarServiceApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'TrackPit',
+      theme: ThemeData(
+        primaryColor: AppColors.primaryGreen,
+        popupMenuTheme: PopupMenuThemeData(
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          textStyle: const TextStyle(color: Colors.black87),
+          elevation: 4,
+        ), // Explicit PopupMenuTheme to avoid dynamic lookups
+      ),
       routes: {
         '/signin': (_) => const SignInPage(),
         '/signup': (_) => const SignUpPage(),
-
-        '/home'  : (_) =>  HomePage(),
-        '/more' : (_) => const MorePage(),
-
-        '/addvehicle' :(_) => const AddVehiclePage(),
-        '/my_vehicles':(_) =>  MyVehiclesPage(),
+        '/home': (_) => HomePage(),
+        '/more': (_) => const MorePage(),
+        '/addvehicle': (_) => const AddVehiclePage(),
+        '/my_vehicles': (_) => MyVehiclesPage(),
+        '/swap_vehicle': (_) => const SwapVehiclePage(),
+        // '/bookService': (context) => const BookServicePage(),
       },
-      // Auth gate: if already signed in, go straight to Home
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snap) {
@@ -47,54 +58,10 @@ class CarServiceApp extends StatelessWidget {
               body: Center(child: CircularProgressIndicator()),
             );
           }
-          if (snap.data != null) return  HomePage();
+          if (snap.data != null) return HomePage();
           return const SignInPage();
         },
       ),
     );
   }
 }
-
-//
-// class HomePage extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: Colors.white,
-//       body: Column(
-//         children: [
-//           CustomAppBar(userName: "Mr. Lim Yuet Yang"), // 👈 reused here
-//           SizedBox(height: 50),
-//           Expanded(
-//             child: Center(
-//               child: Column(
-//                 mainAxisSize: MainAxisSize.min,
-//                 children: [
-//                   Image.asset('lib/assets/images/findworkshop.png'),
-//                   Text(
-//                     "Explore",
-//                     style: TextStyle(
-//                       color: AppColors.primaryGreen,
-//                       fontSize: 18,
-//                       fontWeight: FontWeight.bold,
-//                     ),
-//                   ),
-//                   Text(
-//                     "Find nearby workshops from you",
-//                     style: TextStyle(color: Colors.grey),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ),
-//         ],
-//       ),
-//       bottomNavigationBar: CustomBottomNavBar(
-//         currentIndex: 0,
-//         onTap: (index) {
-//           // navigation handler
-//         },
-//       ),
-//     );
-//   }
-// }

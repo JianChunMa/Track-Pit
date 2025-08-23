@@ -152,6 +152,10 @@ class MorePage extends StatelessWidget {
         onTap: (i) {
           if (i == 0) {
             Navigator.pushNamed(context, '/home');
+          } else if (i == 1) {
+            Navigator.pushReplacementNamed(context, '/bookService');
+          } else if (i == 3) {
+            Navigator.pushReplacementNamed(context, '/more');
           }
           // handle other indexes as you add pages
         },

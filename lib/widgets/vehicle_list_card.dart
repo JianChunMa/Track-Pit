@@ -10,6 +10,7 @@ class VehicleListCard extends StatelessWidget {
   final EdgeInsets margin;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final bool selectMode;
 
   const VehicleListCard({
     Key? key,
@@ -21,6 +22,7 @@ class VehicleListCard extends StatelessWidget {
     this.margin = const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
     this.onEdit,
     this.onDelete,
+    this.selectMode = false,
   }) : super(key: key);
 
   @override
@@ -30,6 +32,7 @@ class VehicleListCard extends StatelessWidget {
     return Container(
       margin: margin,
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           // Card
           InkWell(
@@ -109,41 +112,46 @@ class VehicleListCard extends StatelessWidget {
             ),
           ),
 
-          // Menu icon in top-right corner (absolute position)
-          Positioned(
-            top: 5,
-            right: 3,
-            child: PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: Colors.black87),
-              onSelected: (value) {
-                if (value == 'edit' && onEdit != null) onEdit!();
-                if (value == 'delete' && onDelete != null) onDelete!();
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'edit',
-                  child: Row(
-                    children: [
-                      Icon(Icons.edit, size: 18, color: Colors.blueGrey),
-                      SizedBox(width: 8),
-                      Text('Edit'),
-                    ],
+          // Menu icon in top-right corner (only shown if not in selectMode)
+          if (!selectMode)
+            Positioned(
+              top: 5,
+              right: 3,
+              child: PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert, color: Colors.black87),
+                onSelected: (value) {
+                  print('PopupMenuButton selected: $value, selectMode: $selectMode');
+                  if (value == 'edit' && onEdit != null) {
+                    Future.microtask(onEdit!);
+                  }
+                  if (value == 'delete' && onDelete != null) {
+                    Future.microtask(onDelete!);
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit, size: 18, color: Colors.blueGrey),
+                        SizedBox(width: 8),
+                        Text('Edit'),
+                      ],
+                    ),
                   ),
-                ),
-                const PopupMenuItem(
-
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete, size: 18, color: Colors.redAccent),
-                      SizedBox(width: 8),
-                      Text('Delete'),
-                    ],
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete, size: 18, color: Colors.redAccent),
+                        SizedBox(width: 8),
+                        Text('Delete'),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
