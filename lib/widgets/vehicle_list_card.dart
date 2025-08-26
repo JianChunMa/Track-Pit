@@ -103,8 +103,18 @@ class VehicleListCard extends StatelessWidget {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: imagePath.startsWith('http')
-                          ? Image.network(imagePath, fit: BoxFit.contain)
+                          ? Image.network(
+                        imagePath,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Image.asset(
+                            'lib/assets/images/car_icon.png',
+                            fit: BoxFit.contain,
+                          );
+                        },
+                      )
                           : Image.asset(imagePath, fit: BoxFit.contain),
+
                     ),
                   ),
                 ],

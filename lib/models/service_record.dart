@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+// Represents an actual service that has already been performed on a vehicle.
+
 class ServiceRecord {
   final String id;            // Firestore doc id
   final String uid;           // owner

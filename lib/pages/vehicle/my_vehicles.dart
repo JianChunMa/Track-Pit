@@ -19,13 +19,24 @@ class _MyVehiclesPageState extends State<MyVehiclesPage> {
   bool _isDeleting = false;
 
   String _imageForModel(String model) {
-    print('MyVehiclesPage: Mapping image for model: $model');
+    print('HomePage: Mapping image for model: $model');
     final m = model.toLowerCase();
+
+    // Local asset matches
     if (m.contains('x50')) return 'lib/assets/images/x50.png';
     if (m.contains('myvi')) return 'lib/assets/images/peroduamyvi.png';
 
+    // Known online fallbacks (example hardcoded)
+    if (m.contains('civic')) {
+      return 'lib/assets/images/civic.png';
+    }
+
+
+
+
     return 'lib/assets/images/car_icon.png';
   }
+
 
   @override
   Widget build(BuildContext context) {

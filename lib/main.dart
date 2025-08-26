@@ -12,6 +12,7 @@ import 'package:assignment/pages/more/more_page.dart';
 import 'package:assignment/pages/vehicle/add_vehicle.dart';
 import 'package:assignment/pages/vehicle/my_vehicles.dart';
 import 'package:assignment/pages/vehicle/swap_vehicle.dart';
+import 'package:assignment/pages/book_service/book_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,7 +49,7 @@ class CarServiceApp extends StatelessWidget {
         '/addvehicle': (_) => const AddVehiclePage(),
         '/my_vehicles': (_) => MyVehiclesPage(),
         '/swap_vehicle': (_) => const SwapVehiclePage(),
-        // '/bookService': (context) => const BookServicePage(),
+         '/bookService': (context) => const BookServicePage(),
       },
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),

@@ -22,8 +22,10 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
   // simple demo models list; replace with your own source
   final _models = const <String>[
     'Proton X50 1.5T',
+    'Proton Saga 1.3L',
     'Perodua Myvi 1.5',
     'Honda Accord 2.4L',
+    'Honda Civic 1.5T',
     'Toyota Vios 1.5',
   ];
 

@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+//Represents a future or ongoing appointment made by the user
+// historical data
 class Booking {
   final String id;
   final String uid;

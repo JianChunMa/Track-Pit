@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
-
 import '../core/constants/colors.dart';
-import 'package:assignment/widgets/vehicle_add_card.dart';
+
 class CustomAppBar extends StatelessWidget {
-  final String userName;
-  const CustomAppBar({Key? key, required this.userName}) : super(key: key);
+  final String? userName;
+  final String? title;
+  final bool showBack;
+
+  const CustomAppBar({
+    Key? key,
+    this.userName,
+    this.title,
+    this.showBack = false, // default false
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +25,7 @@ class CustomAppBar extends StatelessWidget {
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              // Decorative background circles
+              // Decorative circles
               Positioned(
                 top: 40,
                 left: -60,
@@ -38,57 +45,80 @@ class CustomAppBar extends StatelessWidget {
                   width: 135,
                   height: 135,
                   decoration: BoxDecoration(
-                    color:  AppColors.secondaryGreen,
+                    color: AppColors.secondaryGreen,
                     shape: BoxShape.circle,
                   ),
                 ),
               ),
 
-              // Greeting text
+              // Title or greeting
               Positioned(
                 top: 60,
-                left: 16,
+                left: 50,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "Welcome back,",
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      userName,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 25,
+                    if (title != null) ...[
+                      Text(
+                        title!,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                        ),
                       ),
-                    ),
+                    ] else if (userName != null) ...[
+                      const Text(
+                        "Welcome back,",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        userName!,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 25,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
 
-              // Notification icon
-              Positioned(
-                top: 60,
-                right: 17,
-                child: Container(
-                  padding: EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.notifications_none,
-                    color: Color(0xFF29A87A),
+              // Back button (optional)
+              if (showBack)
+                Positioned(
+                  top: 50,
+                  left: 0,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new,
+                        color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ),
-              ),
+
+              // Notification icon (only show if not in "back" mode)
+              if (!showBack)
+                Positioned(
+                  top: 60,
+                  right: 17,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.notifications_none,
+                      color: AppColors.primaryGreen,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
-
-
-
       ],
     );
   }
