@@ -4,12 +4,14 @@ import '../core/constants/colors.dart';
 class CustomAppBar extends StatelessWidget {
   final String? userName;
   final String? title;
+  final String? subtitle;
   final bool showBack;
 
   const CustomAppBar({
     Key? key,
     this.userName,
     this.title,
+    this.subtitle,
     this.showBack = false, // default false
   }) : super(key: key);
 
@@ -51,7 +53,7 @@ class CustomAppBar extends StatelessWidget {
                 ),
               ),
 
-              // Title or greeting
+              // Title / Greeting / Subtitle
               Positioned(
                 top: 60,
                 left: 50,
@@ -67,12 +69,24 @@ class CustomAppBar extends StatelessWidget {
                           fontSize: 22,
                         ),
                       ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle!,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+
+                          ),
+                        ),
+                      ],
                     ] else if (userName != null) ...[
                       const Text(
                         "Welcome back,",
                         style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold),
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
                         userName!,
@@ -95,11 +109,11 @@ class CustomAppBar extends StatelessWidget {
                   child: IconButton(
                     icon: const Icon(Icons.arrow_back_ios_new,
                         color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => Navigator.maybePop(context),
                   ),
                 ),
 
-              // Notification icon (only show if not in "back" mode)
+              // Notification icon (only if not in "back" mode)
               if (!showBack)
                 Positioned(
                   top: 60,

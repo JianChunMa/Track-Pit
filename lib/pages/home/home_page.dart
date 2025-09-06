@@ -157,7 +157,7 @@ class _HomePageState extends State<HomePage> {
               if (i == 0) {
                 //
               } else if (i == 1) {
-                Navigator.pushNamed(context, '/bookService');
+                Navigator.pushNamed(context, '/service_Page');
 
               } else if (i == 3) {
                 Navigator.pushNamed(context, '/more');
@@ -318,7 +318,7 @@ class ServiceEmptyView extends StatelessWidget {
             const SizedBox(height: 16),
             TextButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/bookService');
+                Navigator.pushNamed(context, '/Service');
               },
               child: Text(
                 "Book Service",

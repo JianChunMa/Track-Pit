@@ -13,6 +13,7 @@ import 'package:assignment/pages/vehicle/add_vehicle.dart';
 import 'package:assignment/pages/vehicle/my_vehicles.dart';
 import 'package:assignment/pages/vehicle/swap_vehicle.dart';
 import 'package:assignment/pages/book_service/book_service.dart';
+import 'package:assignment/pages/book_service/service_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,6 +50,7 @@ class CarServiceApp extends StatelessWidget {
         '/addvehicle': (_) => const AddVehiclePage(),
         '/my_vehicles': (_) => MyVehiclesPage(),
         '/swap_vehicle': (_) => const SwapVehiclePage(),
+        '/service_Page':(_)=> const ServicesPage(),
          '/bookService': (context) => const BookServicePage(),
       },
       home: StreamBuilder<User?>(

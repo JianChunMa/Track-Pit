@@ -153,7 +153,7 @@ class MorePage extends StatelessWidget {
           if (i == 0) {
             Navigator.pushNamed(context, '/home');
           } else if (i == 1) {
-            Navigator.pushReplacementNamed(context, '/bookService');
+            Navigator.pushReplacementNamed(context, '/service_Page');
           } else if (i == 3) {
             Navigator.pushReplacementNamed(context, '/more');
           }
