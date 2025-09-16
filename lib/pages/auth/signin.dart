@@ -1,11 +1,10 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../../core/constants/colors.dart';
-import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../services/user_services.dart';
-import '/../models/user.dart';
+import '../../models/user.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({Key? key}) : super(key: key);
@@ -22,8 +21,7 @@ class _SignInPageState extends State<SignInPage> {
   final _userService = UserService();
 
   bool _showPwd = false;
-  bool _rememberMe = false;
-
+  bool _rememberMe = false; // (mostly relevant on web)
   bool _loading = false;
 
   @override
@@ -51,7 +49,9 @@ class _SignInPageState extends State<SignInPage> {
   }
 
   Future<void> _submit() async {
+    FocusScope.of(context).unfocus();
     if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (_loading) return;
 
     setState(() => _loading = true);
 
@@ -59,9 +59,19 @@ class _SignInPageState extends State<SignInPage> {
     final password = _pwdCtrl.text.trim();
 
     try {
-      // Optional: "Remember me" persistence is mainly for web; on mobile it's persistent by default.
-      // if (_rememberMe && kIsWeb) {
-      //   await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+      // Optional provider pre-check (uncomment if you want this UX)
+      // final methods = await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
+      // if (methods.isEmpty) {
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     const SnackBar(content: Text('No account found. Please sign up.')),
+      //   );
+      //   return;
+      // }
+      // if (methods.contains('google.com') && !methods.contains('password')) {
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     const SnackBar(content: Text('This email uses Google Sign-In. Use “Login with Google”.')),
+      //   );
+      //   return;
       // }
 
       await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -70,7 +80,6 @@ class _SignInPageState extends State<SignInPage> {
       );
 
       if (!mounted) return;
-      // Navigate to home (or wherever)
       Navigator.pushReplacementNamed(context, '/home');
     } on FirebaseAuthException catch (e) {
       final msg = _mapAuthError(e);
@@ -79,21 +88,30 @@ class _SignInPageState extends State<SignInPage> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Something went wrong. Please try again.'),
-        ),
+        const SnackBar(content: Text('Something went wrong. Please try again.')),
       );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
-  // google sign in
-  // Google sign in (uses UserModel + ensureUserDoc)
+  // Google sign-in (forces account chooser each time)
   Future<void> _signInWithGoogle() async {
+    if (_loading) return;
     setState(() => _loading = true);
     try {
-      final googleUser = await GoogleSignIn().signIn();
+      final googleSignIn = GoogleSignIn();
+
+      // Ensure previous session is cleared so user can select a different account
+      try {
+        await googleSignIn.signOut();
+        await googleSignIn.disconnect();
+      } catch (_) {
+        // ignore if not previously signed in
+      }
+
+      // Trigger account picker
+      final googleUser = await googleSignIn.signIn();
       if (googleUser == null) return; // user cancelled
 
       final googleAuth = await googleUser.authentication;
@@ -103,27 +121,26 @@ class _SignInPageState extends State<SignInPage> {
         idToken: googleAuth.idToken,
       );
 
-      final result =
-      await FirebaseAuth.instance.signInWithCredential(credential);
+      final result = await FirebaseAuth.instance.signInWithCredential(credential);
       final user = result.user;
-      if (user == null) throw Exception('Google sign-in failed (no user)');
+      if (user == null) {
+        throw Exception('Google sign-in failed (no user)');
+      }
 
       final isNew = result.additionalUserInfo?.isNewUser ?? false;
 
       if (isNew) {
-        // create profile using your UserModel
         final model = UserModel(
           uid: user.uid,
           fullName: user.displayName ?? 'User',
           email: (user.email ?? '').toLowerCase(),
-          createdAt: DateTime.now(), // service writes server timestamps
+          createdAt: DateTime.now(),
           points: 0,
           hasCompletedVehicleSetup: false,
           vehicleCount: 0,
         );
         await _userService.createUserDoc(model);
       } else {
-        // make sure a doc exists for returning Google users
         await _userService.ensureUserDoc(
           uid: user.uid,
           fullName: user.displayName ?? 'User',
@@ -146,15 +163,15 @@ class _SignInPageState extends State<SignInPage> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
-
-
+  @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
     const topH = 260.0;
@@ -225,7 +242,7 @@ class _SignInPageState extends State<SignInPage> {
                                   ),
                                   clipBehavior: Clip.antiAlias,
                                   child: Image.asset(
-                                    // prefer putting assets under assets/images/ and declare in pubspec
+                                    // keep your current path if already declared in pubspec
                                     'lib/assets/images/logo.png',
                                     fit: BoxFit.cover,
                                   ),
@@ -315,20 +332,20 @@ class _SignInPageState extends State<SignInPage> {
                                   ),
                                   child: Row(
                                     mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                                    MainAxisAlignment.spaceBetween,
                                     children: [
                                       Row(
                                         children: [
                                           Checkbox(
                                             value: _rememberMe,
                                             onChanged: (v) => setState(
-                                              () => _rememberMe = v ?? false,
+                                                  () => _rememberMe = v ?? false,
                                             ),
                                             activeColor:
-                                                AppColors.primaryGreen,
+                                            AppColors.primaryGreen,
                                             materialTapTargetSize:
-                                                MaterialTapTargetSize
-                                                    .shrinkWrap,
+                                            MaterialTapTargetSize
+                                                .shrinkWrap,
                                           ),
                                           const Text('Remember me'),
                                         ],
@@ -351,8 +368,8 @@ class _SignInPageState extends State<SignInPage> {
                                           try {
                                             await FirebaseAuth.instance
                                                 .sendPasswordResetEmail(
-                                                  email: email,
-                                                );
+                                              email: email,
+                                            );
                                             if (!mounted) return;
                                             ScaffoldMessenger.of(
                                               context,
@@ -374,7 +391,7 @@ class _SignInPageState extends State<SignInPage> {
                                             );
                                           }
                                         },
-                                        child: const Text('Forget Password?'),
+                                        child: const Text('Forgot Password?'),
                                       ),
                                     ],
                                   ),
@@ -398,7 +415,7 @@ class _SignInPageState extends State<SignInPage> {
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                    onPressed: _submit,
+                                    onPressed: _loading ? null : _submit,
                                     child: const Text('Login'),
                                   ),
                                 ),
@@ -440,7 +457,7 @@ class _SignInPageState extends State<SignInPage> {
                                 foregroundColor: Colors.black87,
                                 backgroundColor: Colors.white,
                               ),
-                              onPressed: _signInWithGoogle,
+                              onPressed: _loading ? null : _signInWithGoogle,
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -512,7 +529,7 @@ class _SignInPageState extends State<SignInPage> {
   );
 }
 
-// same rounded field used in signup
+// Rounded field used in signup/signin
 class _RoundedField extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
@@ -540,6 +557,7 @@ class _RoundedField extends StatelessWidget {
       obscureText: obscureText,
       keyboardType: keyboardType,
       validator: validator,
+      textInputAction: textInputAction,
       decoration: InputDecoration(
         hintText: hint,
         filled: true,
@@ -558,7 +576,7 @@ class _RoundedField extends StatelessWidget {
   }
 }
 
-// reuse the same wave clipper from your signup page
+// Wave clipper
 class _BottomWaveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
