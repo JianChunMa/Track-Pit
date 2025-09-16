@@ -1,49 +1,42 @@
 {
   "project_info": {
-    "project_number": "462040031000",
-    "project_id": "trackpit-701b7",
-    "storage_bucket": "trackpit-701b7.firebasestorage.app"
+    "project_number": "275959439979",
+    "project_id": "track-pit-bmit2073",
+    "storage_bucket": "track-pit-bmit2073.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:462040031000:android:9e3d3e725c815bb78f086d",
+        "mobilesdk_app_id": "1:275959439979:android:5b26c7c0b9823cd155072e",
         "android_client_info": {
-          "package_name": "com.example.assignment"
+          "package_name": "com.greenstem.track_pit"
         }
       },
       "oauth_client": [
         {
-          "client_id": "462040031000-s0tnqfru07o2nuqsu7694dg3iimqnqbv.apps.googleusercontent.com",
+          "client_id": "275959439979-9muc1hkhj3k8l952i1b98lgtq8trurme.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.assignment",
+            "package_name": "com.greenstem.track_pit",
             "certificate_hash": "5a00ac20fd6d04727444415b19234b8c766b7f6e"
           }
         },
         {
-          "client_id": "462040031000-b3532b0mhp7t54lvjrs58j2n3b6n1tjt.apps.googleusercontent.com",
+          "client_id": "275959439979-drhqri62td1ade2astd3jgvcjjdsu98h.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDAJ1noaG6bEE9WvoGjZcb7r1bwclduWEo"
+          "current_key": "AIzaSyDoLMXSPfAfVt2QAzQLU4FHB-7swC1Nd4k"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "462040031000-b3532b0mhp7t54lvjrs58j2n3b6n1tjt.apps.googleusercontent.com",
+              "client_id": "275959439979-drhqri62td1ade2astd3jgvcjjdsu98h.apps.googleusercontent.com",
               "client_type": 3
-            },
-            {
-              "client_id": "462040031000-t6d3fv04d8e4t8dvb6kc212cdo9i1id3.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.assignment"
-              }
             }
           ]
         }

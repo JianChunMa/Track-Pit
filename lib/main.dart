@@ -3,17 +3,18 @@ import 'widgets/bottom_navbar.dart';
 import 'core/constants/colors.dart';
 import 'widgets/appbar.dart';
 import 'pages/home/home_page.dart';
-import 'package:assignment/pages/auth/signup.dart';
+import '/pages/auth/signup.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:assignment/pages/auth/signin.dart';
+import '/pages/auth/signin.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:assignment/pages/more/more_page.dart';
-import 'package:assignment/pages/vehicle/add_vehicle.dart';
-import 'package:assignment/pages/vehicle/my_vehicles.dart';
-import 'package:assignment/pages/vehicle/swap_vehicle.dart';
-import 'package:assignment/pages/book_service/book_service.dart';
-import 'package:assignment/pages/book_service/service_page.dart';
+import '/pages/more/more_page.dart';
+import '/pages/vehicle/add_vehicle.dart';
+import '/pages/vehicle/my_vehicles.dart';
+import '/pages/vehicle/swap_vehicle.dart';
+import '/pages/book_service/book_service.dart';
+import '/pages/book_service/service_page.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

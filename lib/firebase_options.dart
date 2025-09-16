@@ -17,17 +17,29 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      return web;
+      throw UnsupportedError(
+        'DefaultFirebaseOptions have not been configured for web - '
+        'you can reconfigure this by running the FlutterFire CLI again.',
+      );
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        return ios;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for ios - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.macOS:
-        return macos;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macos - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.windows:
-        return windows;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for windows - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -40,51 +52,11 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAORigYkPsFHWIyziQUXad5BxroUbXCj3E',
-    appId: '1:462040031000:web:d4cf05c7f715d47a8f086d',
-    messagingSenderId: '462040031000',
-    projectId: 'trackpit-701b7',
-    authDomain: 'trackpit-701b7.firebaseapp.com',
-    storageBucket: 'trackpit-701b7.firebasestorage.app',
-    measurementId: 'G-N5V848T3HQ',
-  );
-
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDAJ1noaG6bEE9WvoGjZcb7r1bwclduWEo',
-    appId: '1:462040031000:android:9e3d3e725c815bb78f086d',
-    messagingSenderId: '462040031000',
-    projectId: 'trackpit-701b7',
-    storageBucket: 'trackpit-701b7.firebasestorage.app',
-  );
-
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBb-k4V4jf6LMtxVZwDENz1IeXj85x9tOk',
-    appId: '1:462040031000:ios:6946b3e262e49d848f086d',
-    messagingSenderId: '462040031000',
-    projectId: 'trackpit-701b7',
-    storageBucket: 'trackpit-701b7.firebasestorage.app',
-    iosClientId: '462040031000-t6d3fv04d8e4t8dvb6kc212cdo9i1id3.apps.googleusercontent.com',
-    iosBundleId: 'com.example.assignment',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBb-k4V4jf6LMtxVZwDENz1IeXj85x9tOk',
-    appId: '1:462040031000:ios:6946b3e262e49d848f086d',
-    messagingSenderId: '462040031000',
-    projectId: 'trackpit-701b7',
-    storageBucket: 'trackpit-701b7.firebasestorage.app',
-    iosClientId: '462040031000-t6d3fv04d8e4t8dvb6kc212cdo9i1id3.apps.googleusercontent.com',
-    iosBundleId: 'com.example.assignment',
-  );
-
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyAORigYkPsFHWIyziQUXad5BxroUbXCj3E',
-    appId: '1:462040031000:web:325e9d6753bcdb098f086d',
-    messagingSenderId: '462040031000',
-    projectId: 'trackpit-701b7',
-    authDomain: 'trackpit-701b7.firebaseapp.com',
-    storageBucket: 'trackpit-701b7.firebasestorage.app',
-    measurementId: 'G-6JMY82SKX6',
+    apiKey: 'AIzaSyDoLMXSPfAfVt2QAzQLU4FHB-7swC1Nd4k',
+    appId: '1:275959439979:android:5b26c7c0b9823cd155072e',
+    messagingSenderId: '275959439979',
+    projectId: 'track-pit-bmit2073',
+    storageBucket: 'track-pit-bmit2073.firebasestorage.app',
   );
 }

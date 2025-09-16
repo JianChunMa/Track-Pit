@@ -4,8 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../widgets/appbar.dart';
 import '../../../widgets/bottom_navbar.dart';
 import '../../../core/constants/colors.dart';
-import 'package:assignment/widgets/vehicle_info_card.dart';
-import 'package:assignment/pages/home/home_empty_view.dart';
+import '/widgets/vehicle_info_card.dart';
+import '/pages/home/home_empty_view.dart';
 
 class BookServicePage extends StatefulWidget {
   const BookServicePage({Key? key}) : super(key: key);

@@ -26,7 +26,7 @@ class _MyVehiclesPageState extends State<MyVehiclesPage> {
     if (m.contains('x50')) return 'lib/assets/images/x50.png';
     if (m.contains('myvi')) return 'lib/assets/images/peroduamyvi.png';
 
-    // Known online fallbacks (example hardcoded)
+    // Known online fallbacks (greenstem hardcoded)
     if (m.contains('civic')) {
       return 'lib/assets/images/civic.png';
     }
