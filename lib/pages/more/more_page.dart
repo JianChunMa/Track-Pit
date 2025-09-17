@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/constants/colors.dart';
-import '../home/home_page.dart'; // adjust to your paths
-import '../../../widgets/appbar.dart';
-import '../../../widgets/bottom_navbar.dart';
+import '../../widgets/bottom_navbar.dart';
+
+// Local More pages
+import 'profile_page.dart';
+import 'faq_page.dart';
+import 'feedback_page.dart';
+
+// Vehicle page (in different folder)
+import '../vehicle/my_vehicles.dart';
 
 class MorePage extends StatelessWidget {
   const MorePage({super.key});
@@ -72,44 +78,52 @@ class MorePage extends StatelessWidget {
               children: [
                 _MenuTile(
                   title: 'Profile',
-                  onTap: () {
-                    /* Navigator.pushNamed(context, '/profile'); */
-                  },
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ProfilePage()),
+                  ),
                 ),
                 _divider(),
                 _MenuTile(
                   title: 'Find Workshops',
                   onTap: () {
-                    /* Navigator.pushNamed(context, '/workshops'); */
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Find Workshops coming soon')),
+                    );
                   },
                 ),
                 _divider(),
                 _MenuTile(
                   title: 'My Vehicles',
-                  onTap: () {
-                    Navigator.pushNamed(context, '/my_vehicles');
-                  },
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MyVehiclesPage()),
+                  ),
                 ),
                 _divider(),
                 _MenuTile(
                   title: 'Payment Methods',
                   onTap: () {
-                    /* Navigator.pushNamed(context, '/payments'); */
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Payment Methods coming soon')),
+                    );
                   },
                 ),
                 _divider(),
                 _MenuTile(
                   title: 'Feedback',
-                  onTap: () {
-                    /* Navigator.pushNamed(context, '/feedback'); */
-                  },
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const FeedbackPage()),
+                  ),
                 ),
                 _divider(),
                 _MenuTile(
                   title: 'FAQ',
-                  onTap: () {
-                    /* Navigator.pushNamed(context, '/faq'); */
-                  },
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const FaqPage()),
+                  ),
                 ),
                 const SizedBox(height: 24),
 
@@ -131,7 +145,7 @@ class MorePage extends StatelessWidget {
                         Navigator.pushNamedAndRemoveUntil(
                           context,
                           '/signin',
-                          (_) => false,
+                              (_) => false,
                         );
                       }
                     },
@@ -145,8 +159,6 @@ class MorePage extends StatelessWidget {
           ),
         ],
       ),
-
-      // ====== REUSABLE BOTTOM NAVBAR ======
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: 3, // "More"
         onTap: (i) {
@@ -157,18 +169,12 @@ class MorePage extends StatelessWidget {
           } else if (i == 3) {
             Navigator.pushReplacementNamed(context, '/more');
           }
-          // handle other indexes as you add pages
         },
       ),
     );
   }
 
   Widget _divider() => const Divider(height: 0);
-  Widget _circle(double s, Color c) => Container(
-    width: s,
-    height: s,
-    decoration: BoxDecoration(color: c, shape: BoxShape.circle),
-  );
 }
 
 // ---------------- Reusable pieces ----------------
@@ -186,11 +192,11 @@ class _ProfileCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black12,
             blurRadius: 10,
-            offset: const Offset(0, 3),
+            offset: Offset(0, 3),
           ),
         ],
       ),
@@ -211,13 +217,7 @@ class _ProfileCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                  ),
-                ),
+                Text(name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                 const SizedBox(height: 4),
                 Text(email, style: TextStyle(color: Colors.grey.shade600)),
               ],
@@ -238,12 +238,11 @@ class _MenuTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       dense: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+      contentPadding: EdgeInsets.zero,
       title: Text(title, style: const TextStyle(fontSize: 16)),
       trailing: const Icon(Icons.chevron_right),
       onTap: onTap,
       visualDensity: VisualDensity.compact,
-      minLeadingWidth: 0,
     );
   }
 }
