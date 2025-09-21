@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "917618545128",
+    "project_id": "track-pit",
+    "storage_bucket": "track-pit.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:917618545128:android:4dbb40af9b7795fac8d45d",
+        "android_client_info": {
+          "package_name": "com.greenstem.track_pit"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "917618545128-rnebh41mif9ebfonbr1n0j9pn3vhiuvd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.greenstem.track_pit",
+            "certificate_hash": "42cee2a2bc71ebdc850f29b841a4877ddcbdaed0"
+          }
+        },
+        {
+          "client_id": "917618545128-tch9pc47rlrd3hbirlgiq6dhl2kr1asa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQR3S5G5d8Q-lH-lJijtbHvfZLd9w4nGQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "917618545128-tch9pc47rlrd3hbirlgiq6dhl2kr1asa.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "917618545128-tctefj1v0t01596lqf66fsle3f8vl3n3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.greenstem.trackPit"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
